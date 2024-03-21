@@ -53,9 +53,10 @@ class CommonForwardService
             $nodeKey = $node['sourceHost'] . ':' . $node['sourcePort'];
             $link = $node['link'];
             $label = sprintf(
-                '%s-%s',
+                '%s-%s-%s',
                 $node['name'],
                 $this->name,
+                $node['protocol']
             );
 
             $host = $this->host;

@@ -26,10 +26,10 @@ class NyanpassRelayService extends AbstractRelayService
 
     public function run()
     {
+        $this->getRelayNodeList();
         $this->getAuthToken();
         $this->getDeviceGroup();
         $this->getForwardList();
-        $this->getRelayNodeList();
         $this->generateRelayedList();
         return $this->links;
     }
@@ -152,11 +152,12 @@ class NyanpassRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s',
+                    '%s-%s-%s-%s-%s',
                     $sourceNode['name'],
                     $this->name,
                     $deviceGroupIn['name'],
-                    $deviceGroupOut['name']
+                    $deviceGroupOut['name'],
+                    $sourceNode['protocol']
                 );
                 $host = $deviceGroupIn['connect_host'];
                 $port = $item['listen_port'];

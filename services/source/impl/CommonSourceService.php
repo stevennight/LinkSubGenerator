@@ -8,7 +8,7 @@ class CommonSourceService
 
     protected $link;
 
-    protected $type;
+    protected $protocol;
 
     protected $sourceHost;
 
@@ -35,8 +35,9 @@ class CommonSourceService
     {
         $links = [];
         $label = sprintf(
-            '%s',
+            '%s-%s',
             $this->name,
+            $this->protocol
         );
         $link = $this->link;
         $link = preg_replace('/\{host}/', $this->sourceHost, $link);

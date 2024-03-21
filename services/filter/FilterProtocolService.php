@@ -8,6 +8,7 @@ class FilterProtocolService
         1 => 'vless',
         2 => 'vmess',
         3 => 'trojan',
+        4 => 'ss',
     ];
 
     public function getOutputProtocol($data)
