@@ -2,6 +2,7 @@
 
 namespace app\services\relay\impl;
 
+use app\services\filter\FilterProtocolService;
 use GuzzleHttp\Client;
 use Yii;
 
@@ -117,42 +118,53 @@ class NyanpassRelayService extends AbstractRelayService
         $res = [];
         foreach ($list as $item) {
             $key = $item['sourceHost'] . ':' . $item['sourcePort'];
-            $res[$key] = $item;
+            // 同一个host+端口，可以有多个不通协议的服务。
+            $res[$key][] = $item;
         }
         $this->relayNodeList = $res;
     }
 
     private function generateRelayedList()
     {
+        $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
+
         $links = [];
         foreach ($this->forwardList as $item) {
             $config = json_decode($item['config'], true);
             $nodeKey = current($config['dest']);
-            $sourceNode = $this->relayNodeList[$nodeKey] ?? null;
-            if (empty($sourceNode)) {
+            $sourceNodes = $this->relayNodeList[$nodeKey] ?? null;
+            if (empty($sourceNodes)) {
                 continue;
             }
 
-            $deviceGroupIn = $this->deviceGroup[$item['device_group_in']] ?? 0;
-            $deviceGroupOut = $this->deviceGroup[$item['device_group_out']] ?? 0;
-            if (!$deviceGroupIn || !$deviceGroupOut) {
-                continue;
-            }
+            // 同一个host+端口，可以有多个不通协议的服务。
+            foreach ($sourceNodes as $sourceNode) {
+                // 过滤协议
+                if (!in_array($sourceNode['protocol'], $outputProtocol)) {
+                    continue;
+                }
 
-            $link = $sourceNode['link'];
-            $label = sprintf(
-                '%s-%s-%s-%s',
-                $sourceNode['name'],
-                $this->name,
-                $deviceGroupIn['name'],
-                $deviceGroupOut['name']
-            );
-            $host = $deviceGroupIn['connect_host'];
-            $port = $item['listen_port'];
-            $link = preg_replace('/\{host}/', $host, $link);
-            $link = preg_replace('/\{port}/', $port, $link);
-            $link = preg_replace('/\{label}/', $label, $link);
-            $links[$label] = $link;
+                $deviceGroupIn = $this->deviceGroup[$item['device_group_in']] ?? 0;
+                $deviceGroupOut = $this->deviceGroup[$item['device_group_out']] ?? 0;
+                if (!$deviceGroupIn || !$deviceGroupOut) {
+                    continue;
+                }
+
+                $link = $sourceNode['link'];
+                $label = sprintf(
+                    '%s-%s-%s-%s',
+                    $sourceNode['name'],
+                    $this->name,
+                    $deviceGroupIn['name'],
+                    $deviceGroupOut['name']
+                );
+                $host = $deviceGroupIn['connect_host'];
+                $port = $item['listen_port'];
+                $link = preg_replace('/\{host}/', $host, $link);
+                $link = preg_replace('/\{port}/', $port, $link);
+                $link = preg_replace('/\{label}/', $label, $link);
+                $links[$label] = $link;
+            }
         }
 
         $this->links = $links;
