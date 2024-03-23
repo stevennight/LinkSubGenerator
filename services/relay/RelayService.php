@@ -18,18 +18,38 @@ class RelayService
         // 拿到中转服务列表
         $relayList = Yii::$app->params['relayList'];
         foreach ($relayList as $relay) {
+            $cacheKey = $this->getCacheKey($data, $relay);
+
             try {
                 $relayType = $relay['type'];
                 $className = ucfirst($relayType) . 'RelayService';
                 $className = 'app\\services\\relay\\impl\\' . $className;
                 /** @var IRelayService $relayService */
                 $relayService = new $className($relay, $data);
-                $res = array_merge($res, $relayService->run());
-            } catch (\Throwable $throwable) {
+                $relayRes = $relayService->run();
+                $res = array_merge($res, $relayRes);
 
+                // 暂定缓存10天（按照中转服务、节点类型、节点协议分组缓存）。这个缓存是避免面板接口问题（包括被block）导致直接无法获取到数据，导致影响使用。
+                Yii::$app->cache->set($cacheKey, json_encode($relayRes), 10 * 24 * 60 * 60);
+            } catch (\Throwable $throwable) {
+                $relayRes = Yii::$app->cache->get($cacheKey);
+                if (!$relayRes) {
+                    continue;
+                }
+
+                $relayRes = json_decode($relayRes, true);
+                $res = array_merge($res, $relayRes);
             }
         }
 
         return $res;
+    }
+
+    public function getCacheKey($data, $relay): string
+    {
+        return sprintf(
+            '%s:%s:%s:%s',
+            $relay['name'], $relay['host'], $data['type'], $data['protocol'] ?? '',
+        );
     }
 }
