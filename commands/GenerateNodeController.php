@@ -18,14 +18,14 @@ class GenerateNodeController extends Controller
         $configNodeList = Yii::$app->params['nodeList'];
         $keyByHostPort = [];
         foreach ($configNodeList as $node) {
-            $keyByHostPort[$node['sourceHost'] . ':' . $node['sourcePort']] = $node['forwardPort'];
+            $keyByHostPort[$node['sourceHost'] . ':' . $node['sourcePort']] = $node['forwardPort'] ?? 0;
         }
         unset($node);
 
         $nodeSettings = [];
         foreach ($nodes as $node) {
             if (!preg_match(
-                '/^(?<protocol>.*?)(?<part1>:\/\/.*?@)(?<host>.*?):(?<port>.*?)(?<part2>\?.*?#)(?<label>.*?)$/',
+                '/^(?<protocol>.*?)(?<part1>:\/\/.*?@)(?<host>.*?):(?<port>.*?)(?<part2>\?*?.*?#)(?<label>.*?)$/',
                 $node,
                 $matches
             )) {

@@ -36,13 +36,13 @@ class AuroraRelayService extends AbstractRelayService
 
     protected $forwardList = [];
 
-    protected $relayNodeList = [];
+    protected $nodeList = [];
 
     protected $sslVerify = false;
 
     public function run()
     {
-        $this->getRelayNodeList();
+        $this->getNodeList();
         $this->getAuthToken();
         $this->getServers();
         $this->getForwardList();
@@ -137,16 +137,16 @@ class AuroraRelayService extends AbstractRelayService
         unset($server);
     }
 
-    private function getRelayNodeList()
+    private function getNodeList()
     {
-        $list = Yii::$app->params['relayNodeList'];
+        $list = Yii::$app->params['nodeList'];
         $res = [];
         foreach ($list as $item) {
             $key = $item['sourceHost'] . ':' . $item['sourcePort'];
             // 同一个host+端口，可以有多个不通协议的服务。
             $res[$key][] = $item;
         }
-        $this->relayNodeList = $res;
+        $this->nodeList = $res;
     }
 
     private function generateRelayedList()
@@ -157,7 +157,7 @@ class AuroraRelayService extends AbstractRelayService
 
         foreach ($this->forwardList as $item) {
             $nodeKey = $item['notes'];
-            $sourceNodes = $this->relayNodeList[$nodeKey] ?? null;
+            $sourceNodes = $this->nodeList[$nodeKey] ?? null;
             if (empty($sourceNodes)) {
                 continue;
             }

@@ -20,13 +20,13 @@ class NyanpassRelayService extends AbstractRelayService
 
     protected $forwardList;
 
-    protected $relayNodeList;
+    protected $nodeList;
 
     protected $sslVerify = false;
 
     public function run()
     {
-        $this->getRelayNodeList();
+        $this->getNodeList();
         $this->getAuthToken();
         $this->getDeviceGroup();
         $this->getForwardList();
@@ -112,16 +112,16 @@ class NyanpassRelayService extends AbstractRelayService
         $this->forwardList = $response['data'];
     }
 
-    private function getRelayNodeList()
+    private function getNodeList()
     {
-        $list = Yii::$app->params['relayNodeList'];
+        $list = Yii::$app->params['nodeList'];
         $res = [];
         foreach ($list as $item) {
             $key = $item['sourceHost'] . ':' . $item['sourcePort'];
             // 同一个host+端口，可以有多个不通协议的服务。
             $res[$key][] = $item;
         }
-        $this->relayNodeList = $res;
+        $this->nodeList = $res;
     }
 
     private function generateRelayedList()
@@ -132,7 +132,7 @@ class NyanpassRelayService extends AbstractRelayService
         foreach ($this->forwardList as $item) {
             $config = json_decode($item['config'], true);
             $nodeKey = current($config['dest']);
-            $sourceNodes = $this->relayNodeList[$nodeKey] ?? null;
+            $sourceNodes = $this->nodeList[$nodeKey] ?? null;
             if (empty($sourceNodes)) {
                 continue;
             }
