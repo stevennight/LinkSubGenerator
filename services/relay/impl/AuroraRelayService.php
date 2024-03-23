@@ -102,7 +102,7 @@ class AuroraRelayService extends AbstractRelayService
 
     private function getForwardList()
     {
-        foreach ($this->servers as $server) {
+        foreach ($this->servers as &$server) {
             $url = '/api/v2/servers/' . $server['id'] . '/ports';
 
             $client = new Client();
@@ -134,6 +134,7 @@ class AuroraRelayService extends AbstractRelayService
 
             $this->forwardList = array_merge($this->forwardList, $list);
         }
+        unset($server);
     }
 
     private function getRelayNodeList()
@@ -153,6 +154,7 @@ class AuroraRelayService extends AbstractRelayService
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
 
         $links = [];
+
         foreach ($this->forwardList as $item) {
             $nodeKey = $item['notes'];
             $sourceNodes = $this->relayNodeList[$nodeKey] ?? null;
@@ -174,6 +176,7 @@ class AuroraRelayService extends AbstractRelayService
                     $item['server']['name'],
                     $sourceNode['protocol']
                 );
+
                 $host = $item['server']['address'];
                 $port = $item['num'];
                 $link = preg_replace('/\{host}/', $host, $link);
@@ -182,7 +185,6 @@ class AuroraRelayService extends AbstractRelayService
                 $links[$label] = $link;
             }
         }
-
         $this->links = $links;
     }
 }
