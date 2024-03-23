@@ -42,7 +42,7 @@ class CommonSourceService
         $link = $this->link;
         $link = preg_replace('/\{host}/', $this->sourceHost, $link);
         $link = preg_replace('/\{port}/', $this->sourcePort, $link);
-        $link = preg_replace('/\{label}/', urlencode($label), $link);
+        $link = preg_replace('/\{label}/', rawurlencode($label), $link);
         $links[$label] = $link;
         $this->links = $links;
     }

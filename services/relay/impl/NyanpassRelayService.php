@@ -163,7 +163,7 @@ class NyanpassRelayService extends AbstractRelayService
                 $port = $item['listen_port'];
                 $link = preg_replace('/\{host}/', $host, $link);
                 $link = preg_replace('/\{port}/', $port, $link);
-                $link = preg_replace('/\{label}/', urlencode($label), $link);
+                $link = preg_replace('/\{label}/', rawurlencode($label), $link);
                 $links[$label] = $link;
             }
         }
