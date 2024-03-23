@@ -18,12 +18,16 @@ class RelayService
         // 拿到中转服务列表
         $relayList = Yii::$app->params['relayList'];
         foreach ($relayList as $relay) {
-            $relayType = $relay['type'];
-            $className = ucfirst($relayType) . 'RelayService';
-            $className = 'app\\services\\relay\\impl\\' . $className;
-            /** @var IRelayService $relayService */
-            $relayService = new $className($relay, $data);
-            $res = array_merge($res, $relayService->run());
+            try {
+                $relayType = $relay['type'];
+                $className = ucfirst($relayType) . 'RelayService';
+                $className = 'app\\services\\relay\\impl\\' . $className;
+                /** @var IRelayService $relayService */
+                $relayService = new $className($relay, $data);
+                $res = array_merge($res, $relayService->run());
+            } catch (\Throwable $throwable) {
+
+            }
         }
 
         return $res;
