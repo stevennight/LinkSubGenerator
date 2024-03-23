@@ -25,7 +25,7 @@ class GenerateNodeController extends Controller
         $nodeSettings = [];
         foreach ($nodes as $node) {
             if (!preg_match(
-                '/^(?<protocol>.*?)(?<part1>:\/\/.*?@)(?<host>.*?):(?<port>.*?)(?<part2>\?*?.*?#)(?<label>.*?)$/',
+                '/^(?<protocol>.*?)(?<part1>:\/\/.*?@)(?<host>.*?):(?<port>.*?)(?<part2>(\?.*?#)|#)(?<label>.*?)$/',
                 $node,
                 $matches
             )) {
