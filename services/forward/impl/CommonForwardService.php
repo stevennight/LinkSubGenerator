@@ -75,7 +75,7 @@ class CommonForwardService
 
             $link = preg_replace('/\{host}/', $host, $link);
             $link = preg_replace('/\{port}/', $port, $link);
-            $link = preg_replace('/\{label}/', $label, $link);
+            $link = preg_replace('/\{label}/', urlencode($label), $link);
             $links[$label] = $link;
         }
 

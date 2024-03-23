@@ -44,7 +44,7 @@ class GenerateNodeController extends Controller
                 'link' => $link,
                 'protocol' => $matches['protocol'],
                 'sourceHost' => $matches['host'],
-                'sourcePort' => $matches['port'],
+                'sourcePort' => (int) $matches['port'],
                 // 如果旧配置有则从旧配置获取，否则到时候再手动配置。
                 'forwardPort' => $keyByHostPort[$matches['host'] . ':' . $matches['port']] ?? 0,
             ];

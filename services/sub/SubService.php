@@ -41,6 +41,13 @@ class SubService
 
     public function formatLinksToText(array $links, array $data): string
     {
+        if (empty($links)) {
+            // 返回默认值
+            $links = [
+                'ss://bm9uZTow@0.0.0.0:8888#%E6%9C%AA%E8%8E%B7%E5%8F%96%E5%88%B0%E6%95%B0%E6%8D%AE'
+            ];
+        }
+
         ksort($links);
 
         $res = implode(PHP_EOL, $links);
