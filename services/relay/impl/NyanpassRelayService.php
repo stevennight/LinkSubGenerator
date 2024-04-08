@@ -165,7 +165,7 @@ class NyanpassRelayService extends AbstractRelayService
                 $host = $deviceGroupIn['connect_host'];
                 if ($this->subHostByUsername) {
                     // 针对GG转发(ny.bijia.me)使用用户名作为子域名。
-                    $host = $this->username . '.' . $host;
+                    $host = $this->username . '.' . ltrim($host, '.');
                 }
 
                 $port = $item['listen_port'];
