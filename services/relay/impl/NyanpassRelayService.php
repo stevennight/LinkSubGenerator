@@ -146,9 +146,10 @@ class NyanpassRelayService extends AbstractRelayService
                     continue;
                 }
 
-                $deviceGroupIn = $this->deviceGroup[$item['device_group_in']] ?? 0;
-                $deviceGroupOut = $this->deviceGroup[$item['device_group_out']] ?? 0;
-                if (!$deviceGroupIn || !$deviceGroupOut) {
+                $deviceGroupIn = $this->deviceGroup[$item['device_group_in']] ?? [];
+                // 可能没有出口设备
+                $deviceGroupOut = $this->deviceGroup[$item['device_group_out']] ?? [];
+                if (!$deviceGroupIn) {
                     continue;
                 }
 
@@ -158,7 +159,7 @@ class NyanpassRelayService extends AbstractRelayService
                     $sourceNode['name'],
                     $this->name,
                     $deviceGroupIn['name'],
-                    $deviceGroupOut['name'],
+                    $deviceGroupOut['name'] ?? '入口直出',
                     $sourceNode['protocol']
                 );
 
