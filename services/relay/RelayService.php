@@ -24,6 +24,9 @@ class RelayService
                 $relayType = $relay['type'];
                 $className = ucfirst($relayType) . 'RelayService';
                 $className = 'app\\services\\relay\\impl\\' . $className;
+                if (!class_exists($className)) {
+                    throw new \RuntimeException('中转服务类型不存在');
+                }
                 /** @var IRelayService $relayService */
                 $relayService = new $className($relay, $data);
                 $relayRes = $relayService->run();
