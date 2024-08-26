@@ -18,10 +18,6 @@ class OcentRelayService extends AbstractRelayService
 
     protected $productList;
 
-    protected $deviceGroup;
-
-    protected $forwardList;
-
     protected $nodeList;
 
     protected $sslVerify = false;
@@ -65,7 +61,7 @@ class OcentRelayService extends AbstractRelayService
      */
     private function getProductList() {
         $client = new Client();
-        $res = $client->request('GET', $this->host . '/api/v1/turbox/product', [
+        $res = $client->request('POST', $this->host . '/api/v1/turbox/product', [
             'headers' => [
                 'Authorization' => $this->authToken,
             ],

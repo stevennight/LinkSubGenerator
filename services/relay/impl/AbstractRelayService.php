@@ -12,7 +12,7 @@ abstract class AbstractRelayService implements IRelayService
 
     protected $data;
 
-    protected $links;
+    protected $links = [];
 
     public function __construct(array $options, array $data)
     {
