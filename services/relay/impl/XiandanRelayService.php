@@ -6,6 +6,9 @@ use app\services\filter\FilterProtocolService;
 use GuzzleHttp\Client;
 use Yii;
 
+/**
+ * 咸蛋转发
+ */
 class XiandanRelayService extends AbstractRelayService
 {
     protected $host;
@@ -18,6 +21,8 @@ class XiandanRelayService extends AbstractRelayService
 
     protected $userId;
 
+    protected $userDetail;
+
     protected $serverList;
 
     protected $nodeList;
@@ -28,6 +33,7 @@ class XiandanRelayService extends AbstractRelayService
     {
         $this->getNodeList();
         $this->getAuthToken();
+        $this->getUserDetail();
         $this->getServerList();
         $this->getProxyLists();
         return $this->links;
@@ -38,7 +44,7 @@ class XiandanRelayService extends AbstractRelayService
         $client = new Client();
         $res = $client->request('POST', $this->host . '/login', [
             'json' => [
-                'email' => $this->username,
+                'username' => $this->username,
                 'password' => $this->password,
             ],
             'verify' => $this->sslVerify,
@@ -57,16 +63,38 @@ class XiandanRelayService extends AbstractRelayService
         $this->userId = $response['data']['userId'] ?? 0;
     }
 
+    private function getUserDetail() {
+        $client = new Client();
+        $res = $client->request('GET', $this->host . '/user/getUserDetail', [
+            'headers' => [
+                'x-token' => $this->authToken,
+            ],
+            'query' => [
+                'userId' => $this->userId,
+            ],
+            'verify' => $this->sslVerify,
+        ]);
+        $response = json_decode($res->getBody()->getContents(), true);
+        if (!$response) {
+            throw new \RuntimeException('获取用户详情：解析响应失败');
+        }
+        if ((int) $response['code'] !== 0) {
+            throw new \RuntimeException('获取用户详情：' . $response['msg']);
+        }
+
+        $this->userDetail = $response['data'];
+    }
+
     /**
-     * 获取产品列表（可能有多个产品）
+     * 获取服务器列表
      *
      * @return void
      */
     private function getServerList() {
         $client = new Client();
-        $res = $client->request('GET', $this->host . '/server/getForwardServerList?userId=486&pageSize=10000&pageNum=1&pageTotal=0', [
+        $res = $client->request('GET', $this->host . '/server/getForwardServerList', [
             'headers' => [
-                'Authorization' => $this->authToken,
+                'x-token' => $this->authToken,
             ],
             'query' => [
                 'userId' => $this->userId,
@@ -105,10 +133,12 @@ class XiandanRelayService extends AbstractRelayService
      * @return void
      */
     private function getProxyList(array $serverInfo) {
+        $serverInfo['flowRate'] = $serverInfo['flowRate'] ?? 1;
+
         $client = new Client();
         $res = $client->request('POST', $this->host . '/forward/getPage', [
             'headers' => [
-                'Authorization' => $this->authToken,
+                'x-token' => $this->authToken,
             ],
             'json' => [
                 'pageNum' => 1,
@@ -127,17 +157,24 @@ class XiandanRelayService extends AbstractRelayService
         if ((int) $response['code'] !== 0) {
                 throw new \RuntimeException('获取转发列表：' . $response['msg']);
         }
-
-        // 组装最终链接
         $proxies = $response['data']['list'];
+
+        // 获取流量等信息
+        $usedFlow = $this->userDetail['dataUsage'] ?? 0;
+        $usedFlow = $usedFlow / 1024 / 1024 / 1024; // 单位G
+        $totalFlow = $this->userDetail['dataLimit'] ?? 0;
+        $remainFlow = $totalFlow - $usedFlow;
+        $remainFlow = max($remainFlow, 0);
+
         $links = [];
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
         foreach ($proxies as $proxy) {
             $host = $proxy['serverHost'] ?? '';
             $hostLabel = $proxy['serverName'] ?? '';
+            $hostLabel = $hostLabel . '*' . $serverInfo['flowRate'];
             $port = $proxy['localPort'];
 
-            $nodeKey = $proxy['remoteHost'] . ':' . $proxy['remoteIp'];
+            $nodeKey = $proxy['remoteHost'] . ':' . $proxy['remotePort'];
             $sourceNodes = $this->nodeList[$nodeKey] ?? null;
 
             // 同一个host+端口，可以有多个不通协议的服务。
@@ -149,11 +186,14 @@ class XiandanRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s',
+                    '%s-%s-%s-%s【过期时间：%s，剩余流量：%s】',
                     $sourceNode['name'],
                     $this->name,
                     $hostLabel,
-                    $sourceNode['protocol']
+                    $sourceNode['protocol'],
+                    isset($this->userDetail['expireTime']) ?
+                        date('Y-m-d H:i:s', strtotime($this->userDetail['expireTime'])) : '获取失败',
+                    number_format($remainFlow, 2) . 'G'
                 );
 
                 $link = preg_replace('/\{host}/', $host, $link);
