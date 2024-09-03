@@ -85,19 +85,19 @@ class OcentRelayService extends AbstractRelayService
      */
     private function getProxyLists() {
         foreach ($this->productList as $productInfo) {
-            $this->getProxyList($productInfo['id']);
+            $this->getProxyList($productInfo);
         }
     }
 
     /**
      * 处理指定产品的转发列表，并生成links数据
      *
-     * @param int $productId
+     * @param int $productInfo
      * @return void
      */
-    private function getProxyList(int $productId) {
+    private function getProxyList(array $productInfo) {
         $client = new Client();
-        $res = $client->request('GET', $this->host . '/api/v1/turbox/product/' . $productId, [
+        $res = $client->request('GET', $this->host . '/api/v1/turbox/product/' . $productInfo['id'], [
             'headers' => [
                 'Authorization' => $this->authToken,
             ],
@@ -110,6 +110,16 @@ class OcentRelayService extends AbstractRelayService
         if ($response['status_code'] !== 0) {
             throw new \RuntimeException('获取转发列表：' . $response['status_msg']);
         }
+
+        // 获取流量等信息
+        $uploadFlow = $productInfo['upload_used'] ?? 0;
+        $downloadFlow = $productInfo['download_used'] ?? 0;
+        $usedFlow = $uploadFlow + $downloadFlow;
+        $usedFlow = $usedFlow / 1024 / 1024 / 1024; // 单位G
+        $totalFlow = $productInfo['flow'] ?? 0;
+        $totalFlow = $totalFlow / 1024 / 1024 / 1024; // 单位G
+        $remainFlow = $totalFlow - $usedFlow;
+        $remainFlow = max($remainFlow, 0);
 
         // 组装最终链接
         $proxies = $response['data']['connections'];
@@ -137,11 +147,14 @@ class OcentRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s',
+                    '%s-%s-%s-%s【过期时间：%s，剩余流量：%s】',
                     $sourceNode['name'],
                     $this->name,
-                    $hostLabel,
-                    $sourceNode['protocol']
+                    $hostLabel . '*1',
+                    $sourceNode['protocol'],
+                    isset($productInfo['due_time']) ?
+                        date('Y-m-d H:i:s', $productInfo['due_time']) : '获取失败',
+                    number_format($remainFlow, 2) . 'G'
                 );
 
                 $link = preg_replace('/\{host}/', $host, $link);

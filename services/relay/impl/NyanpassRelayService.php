@@ -179,14 +179,6 @@ class NyanpassRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s-%s',
-                    $sourceNode['name'],
-                    $this->name,
-                    $deviceGroupIn['name'],
-                    $deviceGroupOut['name'] ?? '入口直出',
-                    $sourceNode['protocol']
-                );
-                $label = sprintf(
                     '%s-%s-%s-%s-%s【过期时间：%s，剩余流量：%s】',
                     $sourceNode['name'],
                     $this->name,
