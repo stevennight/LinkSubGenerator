@@ -159,7 +159,7 @@ class NyanpassRelayService extends AbstractRelayService
             }
             // 从转发名字中获取源节点
             if (empty($sourceNodes)) {
-                $nodeKeyDest = explode(':', $item['name']);
+                $nodeKeyDest = explode('\|/', $item['name']);
                 $nodeKeyDest = end($nodeKeyDest);
                 $sourceNodes = $this->nodeList[$nodeKeyDest] ?? null;
             }
