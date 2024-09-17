@@ -171,8 +171,9 @@ class AuroraRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s',
+                    '%s-%s-%s-%s',
                     $sourceNode['name'],
+                    $this->name,
                     $item['server']['name'],
                     $sourceNode['protocol']
                 );
