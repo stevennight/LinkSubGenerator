@@ -149,8 +149,20 @@ class NyanpassRelayService extends AbstractRelayService
         $links = [];
         foreach ($this->forwardList as $item) {
             $config = json_decode($item['config'], true);
-            $nodeKey = current($config['dest']);
-            $sourceNodes = $this->nodeList[$nodeKey] ?? null;
+
+            $sourceNodes = null;
+            foreach ($config['dest'] as $nodeKeyDest) {
+                $sourceNodes = $this->nodeList[$nodeKeyDest] ?? null;
+                if ($sourceNodes) {
+                    break;
+                }
+            }
+            // 从转发名字中获取源节点
+            if (empty($sourceNodes)) {
+                $nodeKeyDest = explode('\|/', $item['name']);
+                $nodeKeyDest = end($nodeKeyDest);
+                $sourceNodes = $this->nodeList[$nodeKeyDest] ?? null;
+            }
             if (empty($sourceNodes)) {
                 continue;
             }
