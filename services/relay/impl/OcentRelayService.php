@@ -121,6 +121,16 @@ class OcentRelayService extends AbstractRelayService
         $remainFlow = $totalFlow - $usedFlow;
         $remainFlow = max($remainFlow, 0);
 
+        # 新增一条中转账号信息
+        $label = sprintf(
+            '[服务信息]%s【过期时间：%s，剩余流量：%s】',
+            $this->name,
+            isset($productInfo['due_time']) ?
+                date('Y-m-d H:i:s', $productInfo['due_time']) : '获取失败',
+            number_format($remainFlow, 2) . 'G'
+        );
+        $links[$label] = 'ss://bm9uZTow@0.0.0.0:8888#' . rawurlencode($label);
+
         // 组装最终链接
         $proxies = $response['data']['connections'];
         $nodes = array_column($response['data']['nodes'], null, 'id');
@@ -147,14 +157,11 @@ class OcentRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s【过期时间：%s，剩余流量：%s】',
+                    '%s-%s-%s-%s',
                     $sourceNode['name'],
                     $this->name,
                     $hostLabel . '*1',
-                    $sourceNode['protocol'],
-                    isset($productInfo['due_time']) ?
-                        date('Y-m-d H:i:s', $productInfo['due_time']) : '获取失败',
-                    number_format($remainFlow, 2) . 'G'
+                    $sourceNode['protocol']
                 );
 
                 $link = preg_replace('/\{host}/', $host, $link);
