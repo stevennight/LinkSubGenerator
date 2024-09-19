@@ -167,6 +167,7 @@ class XiandanRelayService extends AbstractRelayService
         $remainFlow = max($remainFlow, 0);
 
         # 新增一条中转账号信息
+        $links = [];
         $label = sprintf(
             '[服务信息]%s【过期时间：%s，剩余流量：%s】',
             $this->name,
@@ -176,7 +177,6 @@ class XiandanRelayService extends AbstractRelayService
         );
         $links[$label] = 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label);
 
-        $links = [];
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
         foreach ($proxies as $proxy) {
             $host = $proxy['serverHost'] ?? '';

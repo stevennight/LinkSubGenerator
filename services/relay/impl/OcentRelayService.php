@@ -122,6 +122,7 @@ class OcentRelayService extends AbstractRelayService
         $remainFlow = max($remainFlow, 0);
 
         # 新增一条中转账号信息
+        $links = [];
         $label = sprintf(
             '[服务信息]%s【过期时间：%s，剩余流量：%s】',
             $this->name,
@@ -134,7 +135,6 @@ class OcentRelayService extends AbstractRelayService
         // 组装最终链接
         $proxies = $response['data']['connections'];
         $nodes = array_column($response['data']['nodes'], null, 'id');
-        $links = [];
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
         foreach ($proxies as $proxy) {
             $nodeId = $proxy['node_id'];
