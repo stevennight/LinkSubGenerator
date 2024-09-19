@@ -166,6 +166,16 @@ class XiandanRelayService extends AbstractRelayService
         $remainFlow = $totalFlow - $usedFlow;
         $remainFlow = max($remainFlow, 0);
 
+        # 新增一条中转账号信息
+        $label = sprintf(
+            '[服务信息]%s【过期时间：%s，剩余流量：%s】',
+            $this->name,
+            isset($this->userDetail['expireTime']) ?
+                date('Y-m-d H:i:s', strtotime($this->userDetail['expireTime'])) : '获取失败',
+            number_format($remainFlow, 2) . 'G'
+        );
+        $links[$label] = 'ss://bm9uZTow@0.0.0.0:8888#' . rawurlencode($label);
+
         $links = [];
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
         foreach ($proxies as $proxy) {
@@ -186,14 +196,11 @@ class XiandanRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s【过期时间：%s，剩余流量：%s】',
+                    '%s-%s-%s-%s',
                     $sourceNode['name'],
                     $this->name,
                     $hostLabel,
-                    $sourceNode['protocol'],
-                    isset($this->userDetail['expireTime']) ?
-                        date('Y-m-d H:i:s', strtotime($this->userDetail['expireTime'])) : '获取失败',
-                    number_format($remainFlow, 2) . 'G'
+                    $sourceNode['protocol']
                 );
 
                 $link = preg_replace('/\{host}/', $host, $link);
