@@ -174,7 +174,7 @@ class XiandanRelayService extends AbstractRelayService
                 date('Y-m-d H:i:s', strtotime($this->userDetail['expireTime'])) : '获取失败',
             number_format($remainFlow, 2) . 'G'
         );
-        $links[$label] = 'ss://bm9uZTow@0.0.0.0:8888#' . rawurlencode($label);
+        $links[$label] = 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label);
 
         $links = [];
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);

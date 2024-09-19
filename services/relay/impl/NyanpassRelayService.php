@@ -183,7 +183,7 @@ class NyanpassRelayService extends AbstractRelayService
                     date('Y-m-d H:i:s', $this->userDetail['expire']) : '获取失败',
                 number_format($remainFlow, 2) . 'G'
             );
-            $links[$label] = 'ss://bm9uZTow@0.0.0.0:8888#' . rawurlencode($label);
+            $links[$label] = 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label);
 
             // 同一个host+端口，可以有多个不通协议的服务。
             foreach ($sourceNodes as $sourceNode) {

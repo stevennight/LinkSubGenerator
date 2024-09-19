@@ -129,7 +129,7 @@ class OcentRelayService extends AbstractRelayService
                 date('Y-m-d H:i:s', $productInfo['due_time']) : '获取失败',
             number_format($remainFlow, 2) . 'G'
         );
-        $links[$label] = 'ss://bm9uZTow@0.0.0.0:8888#' . rawurlencode($label);
+        $links[$label] = 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label);
 
         // 组装最终链接
         $proxies = $response['data']['connections'];
