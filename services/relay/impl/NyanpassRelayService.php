@@ -175,6 +175,16 @@ class NyanpassRelayService extends AbstractRelayService
             $remainFlow = $totalFlow - $usedFlow;
             $remainFlow = max($remainFlow, 0);
 
+            # 新增一条中转账号信息
+            $label = sprintf(
+                '[服务信息]%s【过期时间：%s，剩余流量：%s】',
+                $this->name,
+                isset($this->userDetail['expire']) ?
+                    date('Y-m-d H:i:s', $this->userDetail['expire']) : '获取失败',
+                number_format($remainFlow, 2) . 'G'
+            );
+            $links[$label] = 'ss://bm9uZTow@0.0.0.0:8888#' . rawurlencode($label);
+
             // 同一个host+端口，可以有多个不通协议的服务。
             foreach ($sourceNodes as $sourceNode) {
                 // 过滤协议
@@ -191,16 +201,13 @@ class NyanpassRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s-%s【过期时间：%s，剩余流量：%s】',
+                    '%s-%s-%s-%s-%s',
                     $sourceNode['name'],
                     $this->name,
                     $deviceGroupIn['name'] . '*' . $deviceGroupIn['ratio'],
                     isset($deviceGroupOut['name']) ?
                         $deviceGroupOut['name'] . '*' . $deviceGroupOut['ratio'] : '入口直出',
-                    $sourceNode['protocol'],
-                    isset($this->userDetail['expire']) ?
-                        date('Y-m-d H:i:s', $this->userDetail['expire']) : '获取失败',
-                    number_format($remainFlow, 2) . 'G'
+                    $sourceNode['protocol']
                 );
 
                 $host = $deviceGroupIn['connect_host'];
