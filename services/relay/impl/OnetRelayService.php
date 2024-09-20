@@ -7,7 +7,7 @@ use GuzzleHttp\Client;
 use Yii;
 
 /**
- * 咸蛋转发
+ * 咸蛋转发(onet专用)
  */
 class OnetRelayService extends AbstractRelayService
 {
@@ -184,13 +184,21 @@ class OnetRelayService extends AbstractRelayService
 
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
         foreach ($proxies as $proxy) {
-            $hostLabel = $proxy['serverName'] ?? '';
-            $hostLabel = $hostLabel . '*' . $serverInfo['flowRate'];
-            $host = $this->hostList[$hostLabel] ?? '';
+            $serverName = $proxy['serverName'] ?? '';
+            $hostLabel = $serverName . '*' . $serverInfo['flowRate'];
+            $host = $this->hostList[$serverName] ?? '';
             $port = $proxy['localPort'];
 
             $nodeKey = $proxy['remoteHost'] . ':' . $proxy['remotePort'];
             $sourceNodes = $this->nodeList[$nodeKey] ?? null;
+            // 从转发名字中获取源节点
+            if (empty($sourceNodes)) {
+                $nodeKey = $proxy['remark'];
+                $sourceNodes = $this->nodeList[$nodeKey] ?? null;
+            }
+            if (empty($sourceNodes)) {
+                continue;
+            }
 
             // 同一个host+端口，可以有多个不通协议的服务。
             foreach ($sourceNodes as $sourceNode) {

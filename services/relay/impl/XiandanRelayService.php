@@ -186,6 +186,14 @@ class XiandanRelayService extends AbstractRelayService
 
             $nodeKey = $proxy['remoteHost'] . ':' . $proxy['remotePort'];
             $sourceNodes = $this->nodeList[$nodeKey] ?? null;
+            // 从转发名字中获取源节点
+            if (empty($sourceNodes)) {
+                $nodeKey = $proxy['remark'];
+                $sourceNodes = $this->nodeList[$nodeKey] ?? null;
+            }
+            if (empty($sourceNodes)) {
+                continue;
+            }
 
             // 同一个host+端口，可以有多个不通协议的服务。
             foreach ($sourceNodes as $sourceNode) {
