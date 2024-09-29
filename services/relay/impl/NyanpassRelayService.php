@@ -28,6 +28,12 @@ class NyanpassRelayService extends AbstractRelayService
 
     protected $sslVerify = false;
 
+    /**
+     * 有些场景面板没有对应的入口地址等信息，这里可以让在配置文件里面配。
+     * @var array
+     */
+    protected $hostList = [];
+
     public function run()
     {
         $this->getNodeList();
@@ -146,7 +152,8 @@ class NyanpassRelayService extends AbstractRelayService
     {
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
 
-        $links = [];
+        $links = $this->buildFlowLinks();
+
         foreach ($this->forwardList as $item) {
             $config = json_decode($item['config'], true);
 
@@ -167,24 +174,6 @@ class NyanpassRelayService extends AbstractRelayService
                 continue;
             }
 
-            // 获取流量等信息
-            $usedFlow = $this->userDetail['traffic_used'] ?? 0;
-            $usedFlow = $usedFlow / 1024 / 1024 / 1024; // 单位G
-            $totalFlow = $this->userDetail['traffic_enable'] ?? 0;
-            $totalFlow = $totalFlow / 1024 / 1024 / 1024; // 单位G
-            $remainFlow = $totalFlow - $usedFlow;
-            $remainFlow = max($remainFlow, 0);
-
-            # 新增一条中转账号信息
-            $label = sprintf(
-                '[服务信息]%s【过期时间：%s，剩余流量：%s】',
-                $this->name,
-                isset($this->userDetail['expire']) ?
-                    date('Y-m-d H:i:s', $this->userDetail['expire']) : '获取失败',
-                number_format($remainFlow, 2) . 'G'
-            );
-            $links[$label] = 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label);
-
             // 同一个host+端口，可以有多个不通协议的服务。
             foreach ($sourceNodes as $sourceNode) {
                 // 过滤协议
@@ -199,31 +188,61 @@ class NyanpassRelayService extends AbstractRelayService
                     continue;
                 }
 
-                $link = $sourceNode['link'];
-                $label = sprintf(
-                    '%s-%s-%s-%s-%s',
-                    $sourceNode['name'],
-                    $this->name,
-                    $deviceGroupIn['name'] . '*' . $deviceGroupIn['ratio'],
-                    isset($deviceGroupOut['name']) ?
-                        $deviceGroupOut['name'] . '*' . $deviceGroupOut['ratio'] : '入口直出',
-                    $sourceNode['protocol']
-                );
+                // 自定义服务器信息，支持多个。
+                $customHostList = $this->hostList[$deviceGroupIn['name']] ?? [[]];
+                foreach ($customHostList as $customHost) {
+                    // 将配置里面的信息合并过来
+                    $currentDeviceGroupIn = array_merge($deviceGroupIn, $customHost);
 
-                $host = $deviceGroupIn['connect_host'];
-                if ($this->subHostByUsername) {
-                    // 针对GG转发(ny.bijia.me)使用用户名作为子域名。
-                    $host = $this->username . '.' . ltrim($host, '.');
+                    $link = $sourceNode['link'];
+                    $label = sprintf(
+                        '%s-%s-%s-%s-%s',
+                        $sourceNode['name'],
+                        $this->name,
+                        $currentDeviceGroupIn['name'] . '*' . $currentDeviceGroupIn['ratio'],
+                        isset($deviceGroupOut['name']) ?
+                            $deviceGroupOut['name'] . '*' . $deviceGroupOut['ratio'] : '入口直出',
+                        $sourceNode['protocol']
+                    );
+
+                    $host = $currentDeviceGroupIn['connect_host'];
+                    if ($this->subHostByUsername) {
+                        // 针对GG转发(ny.bijia.me)使用用户名作为子域名。
+                        $host = $this->username . '.' . ltrim($host, '.');
+                    }
+
+                    $port = $item['listen_port'];
+                    $link = preg_replace('/\{host}/', $host, $link);
+                    $link = preg_replace('/\{port}/', $port, $link);
+                    $link = preg_replace('/\{label}/', rawurlencode($label), $link);
+                    $links[$label] = $link;
                 }
-
-                $port = $item['listen_port'];
-                $link = preg_replace('/\{host}/', $host, $link);
-                $link = preg_replace('/\{port}/', $port, $link);
-                $link = preg_replace('/\{label}/', rawurlencode($label), $link);
-                $links[$label] = $link;
             }
         }
 
         $this->links = $links;
+    }
+
+    public function buildFlowLinks(): array
+    {
+        // 获取流量等信息
+        $usedFlow = $this->userDetail['traffic_used'] ?? 0;
+        $usedFlow = $usedFlow / 1024 / 1024 / 1024; // 单位G
+        $totalFlow = $this->userDetail['traffic_enable'] ?? 0;
+        $totalFlow = $totalFlow / 1024 / 1024 / 1024; // 单位G
+        $remainFlow = $totalFlow - $usedFlow;
+        $remainFlow = max($remainFlow, 0);
+
+        # 新增一条中转账号信息
+        $label = sprintf(
+            '[服务信息]%s【过期时间：%s，剩余流量：%s】',
+            $this->name,
+            isset($this->userDetail['expire']) ?
+                date('Y-m-d H:i:s', $this->userDetail['expire']) : '获取失败',
+            number_format($remainFlow, 2) . 'G'
+        );
+        return [
+            $label => 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label),
+        ];
     }
 }
