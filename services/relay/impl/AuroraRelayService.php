@@ -40,6 +40,8 @@ class AuroraRelayService extends AbstractRelayService
 
     protected $sslVerify = false;
 
+    protected $hostList = [];
+
     public function run()
     {
         $this->getNodeList();
@@ -170,6 +172,11 @@ class AuroraRelayService extends AbstractRelayService
                 continue;
             }
 
+            $serverName = $item['server']['name'] ?? '';
+            $hostList = $this->hostList[$serverName] ?? [
+                $item['server']
+            ];
+
             // 同一个host+端口，可以有多个不通协议的服务。
             foreach ($sourceNodes as $sourceNode) {
                 // 过滤协议
@@ -177,22 +184,24 @@ class AuroraRelayService extends AbstractRelayService
                     continue;
                 }
 
-                $link = $sourceNode['link'];
-                $label = sprintf(
-                    '%s-%s-%s%s-%s',
-                    $sourceNode['name'],
-                    $this->name,
-                    $item['server']['name'],
-                    isset($notes['remark']) ? '-' . $notes['remark'] : '',
-                    $sourceNode['protocol']
-                );
+                foreach ($hostList as $aHost) {
+                    $link = $sourceNode['link'];
+                    $label = sprintf(
+                        '%s-%s-%s%s-%s',
+                        $sourceNode['name'],
+                        $this->name,
+                        $aHost['name'],
+                        isset($notes['remark']) ? '-' . $notes['remark'] : '',
+                        $sourceNode['protocol']
+                    );
 
-                $host = $item['server']['address'];
-                $port = $item['num'];
-                $link = preg_replace('/\{host}/', $host, $link);
-                $link = preg_replace('/\{port}/', $port, $link);
-                $link = preg_replace('/\{label}/', rawurlencode($label), $link);
-                $links[$label] = $link;
+                    $host = $aHost['address'];
+                    $port = $item['num'];
+                    $link = preg_replace('/\{host}/', $host, $link);
+                    $link = preg_replace('/\{port}/', $port, $link);
+                    $link = preg_replace('/\{label}/', rawurlencode($label), $link);
+                    $links[$label] = $link;
+                }
             }
         }
         $this->links = $links;
