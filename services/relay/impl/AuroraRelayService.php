@@ -156,7 +156,15 @@ class AuroraRelayService extends AbstractRelayService
         $links = [];
 
         foreach ($this->forwardList as $item) {
-            $nodeKey = $item['notes'];
+            // 从备注中读取信息
+            $notes = json_decode($item['notes'], true);
+            if ($notes === false) {
+                $notes = [
+                    'source' => $item['notes']
+                ];
+            }
+
+            $nodeKey = $notes['source'];
             $sourceNodes = $this->nodeList[$nodeKey] ?? null;
             if (empty($sourceNodes)) {
                 continue;
