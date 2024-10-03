@@ -158,13 +158,13 @@ class AuroraRelayService extends AbstractRelayService
         foreach ($this->forwardList as $item) {
             // 从备注中读取信息
             $notes = json_decode($item['notes'], true);
-            if ($notes === false) {
+            if (empty($notes)) {
                 $notes = [
-                    'source' => $item['notes']
+                    'source' => $item['notes'],
                 ];
             }
 
-            $nodeKey = $notes['source'];
+            $nodeKey = $notes['source'] ?? '';
             $sourceNodes = $this->nodeList[$nodeKey] ?? null;
             if (empty($sourceNodes)) {
                 continue;
@@ -179,10 +179,11 @@ class AuroraRelayService extends AbstractRelayService
 
                 $link = $sourceNode['link'];
                 $label = sprintf(
-                    '%s-%s-%s-%s',
+                    '%s-%s-%s%s-%s',
                     $sourceNode['name'],
                     $this->name,
                     $item['server']['name'],
+                    isset($notes['remark']) ? '-' . $notes['remark'] : '',
                     $sourceNode['protocol']
                 );
 
