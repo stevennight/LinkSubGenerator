@@ -35,7 +35,7 @@ class RelayService
                 // 暂定缓存10天（按照中转服务、节点类型、节点协议分组缓存）。这个缓存是避免面板接口问题（包括被block）导致直接无法获取到数据，导致影响使用。
                 Yii::$app->cache->set($cacheKey, json_encode($relayRes), 10 * 24 * 60 * 60);
             } catch (\Throwable $throwable) {
-//                var_dump($throwable->getMessage(), $throwable->getLine(), $throwable->getFile(), $throwable->getTraceAsString());
+                var_dump($throwable->getMessage(), $throwable->getLine(), $throwable->getFile(), $throwable->getTraceAsString());die;
                 $relayRes = Yii::$app->cache->get($cacheKey);
                 if (!$relayRes) {
                     continue;
