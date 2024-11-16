@@ -11,7 +11,7 @@ class ConfigController extends Controller
         if (\Yii::$app->request->isPost) {
             $data = \Yii::$app->request->post();
             $res = (new ConfigService())->dataNodeProvider($data);
-            return $res;
+            return 'success' . json_encode($res);
         }
 
         return $this->render('node');
@@ -21,7 +21,7 @@ class ConfigController extends Controller
         if (\Yii::$app->request->isPost) {
             $data = \Yii::$app->request->post();
             $res = (new ConfigService())->dataRelayListProvider($data);
-            return $res;
+            return 'success' . $res;
         }
 
         return $this->render('relayList');
