@@ -8,6 +8,7 @@
 <body>
 <div>
     <form method="post">
+        <input type="hidden" name="_csrf" value="<?=Yii::$app->request->getCsrfToken()?>" />
         <textarea name="content" style="width: 100%; height: 90%; box-sizing: border-box"></textarea>
         <input type="submit" value="提交">
     </form>
