@@ -9,7 +9,7 @@ class ConfigService
     public function dataNodeProvider(array $data): array
     {
         $content = $data['content'];
-        $nodes = explode(PHP_EOL, $content);
+        $nodes = explode('\r\n', $content);
 
         $configNodeList = Yii::$app->params['nodeList'];
         $keyByHostPort = [];
