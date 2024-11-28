@@ -205,7 +205,10 @@ class NyanpassRelayService extends AbstractRelayService
                         $sourceNode['protocol']
                     );
 
-                    $host = $currentDeviceGroupIn['connect_host'] ?? '获取服务器地址失败';
+                    $host = $currentDeviceGroupIn['connect_host'] ?? '';
+                    if (empty($host)) {
+                        continue;
+                    }
                     if ($this->subHostByUsername) {
                         // 针对GG转发(ny.bijia.me)使用用户名作为子域名。
                         $host = $this->username . '.' . ltrim($host, '.');
