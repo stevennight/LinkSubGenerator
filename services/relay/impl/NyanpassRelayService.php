@@ -193,6 +193,7 @@ class NyanpassRelayService extends AbstractRelayService
                 foreach ($customHostList as $customHost) {
                     // 将配置里面的信息合并过来
                     $currentDeviceGroupIn = array_merge($deviceGroupIn, $customHost);
+                    $currentPort = $customHost['port_map'][$item['listen_port']] ?? $item['listen_port'];
 
                     $link = $sourceNode['link'];
                     $label = sprintf(
@@ -214,9 +215,8 @@ class NyanpassRelayService extends AbstractRelayService
                         $host = $this->username . '.' . ltrim($host, '.');
                     }
 
-                    $port = $item['listen_port'];
                     $link = preg_replace('/\{host}/', $host, $link);
-                    $link = preg_replace('/\{port}/', $port, $link);
+                    $link = preg_replace('/\{port}/', $currentPort, $link);
                     $link = preg_replace('/\{label}/', rawurlencode($label), $link);
                     $links[$label] = $link;
                 }
