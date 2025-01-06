@@ -181,8 +181,8 @@ class Luny60RelayService extends AbstractRelayService
         $label = sprintf(
             '[服务信息]%s【过期时间：%s，剩余流量：%s】',
             $this->name,
-            isset($this->traffic_total['valid_until']) ?
-                date('Y-m-d H:i:s', strtotime($this->traffic_total['expire'])) : '获取失败',
+            isset($this->subscriptionInfo['valid_until']) ?
+                date('Y-m-d H:i:s', strtotime($this->subscriptionInfo['valid_until'])) : '获取失败',
             number_format($remainFlow, 2) . 'G'
         );
         return [
