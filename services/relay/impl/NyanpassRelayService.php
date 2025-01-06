@@ -136,18 +136,6 @@ class NyanpassRelayService extends AbstractRelayService
         $this->forwardList = $response['data'];
     }
 
-    private function getNodeList()
-    {
-        $list = Yii::$app->params['nodeList'];
-        $res = [];
-        foreach ($list as $item) {
-            $key = $item['sourceHost'] . ':' . $item['sourcePort'];
-            // 同一个host+端口，可以有多个不通协议的服务。
-            $res[$key][] = $item;
-        }
-        $this->nodeList = $res;
-    }
-
     private function generateRelayedList()
     {
         $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
