@@ -55,10 +55,6 @@ class Luny60RelayService extends AbstractRelayService
             throw new \RuntimeException('登录失败：获取token失败');
         }
 
-        if ((int)$response['code'] !== 0) {
-            throw new \RuntimeException('登录失败：' . $response['msg']);
-        }
-
         $this->authToken = 'Bearer ' . $response['jwt'];
     }
 
