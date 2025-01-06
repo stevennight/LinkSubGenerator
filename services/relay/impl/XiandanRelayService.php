@@ -220,16 +220,4 @@ class XiandanRelayService extends AbstractRelayService
 
         $this->links = array_merge($this->links, $links);
     }
-
-    private function getNodeList()
-    {
-        $list = Yii::$app->params['nodeList'];
-        $res = [];
-        foreach ($list as $item) {
-            $key = $item['sourceHost'] . ':' . $item['sourcePort'];
-            // 同一个host+端口，可以有多个不通协议的服务。
-            $res[$key][] = $item;
-        }
-        $this->nodeList = $res;
-    }
 }
