@@ -172,8 +172,7 @@ class Luny60RelayService extends AbstractRelayService
         // 获取流量等信息
         $usedFlow = $this->subscriptionInfo['traffic_used'] ?? 0;
         $usedFlow = $usedFlow / 1024 / 1024 / 1024; // 单位G
-        $totalFlow = $this->subscriptionInfo['traffic_total'] ?? 0;
-        $totalFlow = $totalFlow / 1024 / 1024 / 1024; // 单位G
+        $totalFlow = $this->subscriptionInfo['traffic_total'] ?? 0; // 单位G
         $remainFlow = $totalFlow - $usedFlow;
         $remainFlow = max($remainFlow, 0);
 
