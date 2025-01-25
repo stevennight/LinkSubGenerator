@@ -20,6 +20,12 @@ class RelayService
         foreach ($relayList as $relay) {
             $cacheKey = $this->getCacheKey($data, $relay);
 
+            if ($relayRes = Yii::$app->cache->get($cacheKey)) {
+                $relayRes = json_decode($relayRes, true);
+                $res = array_merge($res, $relayRes);
+                continue;
+            }
+
             try {
                 $relayType = $relay['type'];
                 $className = ucfirst($relayType) . 'RelayService';
@@ -34,6 +40,9 @@ class RelayService
 
                 // 暂定缓存10天（按照中转服务、节点类型、节点协议分组缓存）。这个缓存是避免面板接口问题（包括被block）导致直接无法获取到数据，导致影响使用。
                 Yii::$app->cache->set($cacheKey, json_encode($relayRes), 10 * 24 * 60 * 60);
+
+                // 增加一个短期缓存。短期进来直接拿缓存。避免响应时间过长导致更新失败，有缓存了第二次请求可以直接读缓存，从而缩短响应时间。临时措施。
+                Yii::$app->cache->set($cacheKey . ':short', json_encode($relayRes), 5 * 60);
             } catch (\Throwable $throwable) {
                 var_dump($throwable->getMessage(), $throwable->getLine(), $throwable->getFile(), $throwable->getTraceAsString());die;
                 $relayRes = Yii::$app->cache->get($cacheKey);
