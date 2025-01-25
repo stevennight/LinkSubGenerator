@@ -107,7 +107,7 @@ class Luny60RelayService extends AbstractRelayService
         $links = $this->buildFlowLinks();
 
         foreach ($this->forwardList as $item) {
-            $dest = $item['target_address_v4'] . ':' . $item['target_port_v4'];
+            $dest = $item['target_address_list'][0] ?? '';
             $sourceNodes = $this->nodeList[$dest] ?? null;
 
             // 从转发名字中获取源节点
