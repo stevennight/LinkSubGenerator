@@ -22,7 +22,7 @@ class RelayService
         foreach ($relayList as $relay) {
             $cacheKey = $this->getCacheKey($data, $relay);
 
-            if (!$forceRefresh && $relayRes = Yii::$app->cache->get($cacheKey)) {
+            if (!$forceRefresh && $relayRes = Yii::$app->cache->get($cacheKey . ':short')) {
                 $relayRes = json_decode($relayRes, true);
                 $res = array_merge($res, $relayRes);
                 continue;
