@@ -53,6 +53,7 @@ class RelayService
                 }
 
                 $relayRes = json_decode($relayRes, true);
+                $relayRes = array_merge($this->buildErrorLink($relay, $throwable->getMessage()), $relayRes);
                 $res = array_merge($res, $relayRes);
             }
         }
@@ -66,5 +67,18 @@ class RelayService
             '%s:%s:%s:%s',
             $relay['name'], $relay['host'], $data['type'], $data['protocol'] ?? '',
         );
+    }
+
+    public function buildErrorLink($params, $msg): array
+    {
+        # 新增一条中转账号信息
+        $label = sprintf(
+            '[%s]获取最新数据异常：%s',
+            $params['name'] ?? '',
+            $msg
+        );
+        return [
+            $label => 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label),
+        ];
     }
 }
