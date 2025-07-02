@@ -106,7 +106,7 @@ class Luny60RelayService extends AbstractRelayService
 
         $links = $this->buildFlowLinks();
 
-        foreach ($this->forwardList as $item) {
+        foreach ($this->forwardList['ports'] as $item) {
             $dest = $item['target_address_list'][0] ?? '';
             $sourceNodes = $this->nodeList[$dest] ?? null;
 
