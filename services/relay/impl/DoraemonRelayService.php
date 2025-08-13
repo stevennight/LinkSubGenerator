@@ -69,7 +69,7 @@ class DoraemonRelayService extends AbstractRelayService
         $client = new Client();
         $res = $client->request('POST', $this->host . '/api/v1/user/package', [
             'headers' => [
-                'token' => $this->authToken,
+                'Authorization' => $this->authToken,
             ],
             'verify' => $this->sslVerify,
         ]);
@@ -89,7 +89,7 @@ class DoraemonRelayService extends AbstractRelayService
         $client = new Client();
         $res = $client->request('POST', $this->host . '/api/v1/forward/list', [
             'headers' => [
-                'token' => $this->authToken,
+                'Authorization' => $this->authToken,
             ],
             'verify' => $this->sslVerify,
         ]);
