@@ -117,9 +117,10 @@ class DoraemonRelayService extends AbstractRelayService
             $sourceNodes = $this->nodeList[$item['name']] ?? null;
             
             // 如果通过name字段没有匹配到，尝试使用remoteAddr字段
-            if (empty($sourceNodes) && !empty($item['remoteAddr'])) {
-                $sourceNodes = $this->nodeList[$item['remoteAddr']] ?? null;
-            }
+            // 由于可能其他服务会中转到目标地址（比如v4->v6），如果拿这个地址作比较，那么就不那么可控。所以目前去掉。
+//            if (empty($sourceNodes) && !empty($item['remoteAddr'])) {
+//                $sourceNodes = $this->nodeList[$item['remoteAddr']] ?? null;
+//            }
             
             if (empty($sourceNodes)) {
                 continue;
