@@ -46,7 +46,7 @@ class RelayService
                 // 增加一个短期缓存。短期进来直接拿缓存。避免响应时间过长导致更新失败，有缓存了第二次请求可以直接读缓存，从而缩短响应时间。临时措施。
                 Yii::$app->cache->set($cacheKey . ':short', json_encode($relayRes), 5 * 60);
             } catch (\Throwable $throwable) {
-//                var_dump($throwable->getMessage(), $throwable->getLine(), $throwable->getFile(), $throwable->getTraceAsString());die;
+                var_dump($throwable->getMessage(), $throwable->getLine(), $throwable->getFile(), $throwable->getTraceAsString());die;
                 $relayRes = Yii::$app->cache->get($cacheKey);
                 if (!$relayRes) {
                     continue;

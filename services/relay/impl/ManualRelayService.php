@@ -2,8 +2,6 @@
 
 namespace app\services\relay\impl;
 
-use app\services\relay\AbstractRelayService;
-
 /**
  * 手动配置的中转服务
  */
