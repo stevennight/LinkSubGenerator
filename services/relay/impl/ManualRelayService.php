@@ -3,12 +3,18 @@
 namespace app\services\relay\impl;
 
 use app\services\filter\FilterProtocolService;
+use PhpParser\Node\Scalar\String_;
 
 /**
  * 手动配置的中转服务
  */
 class ManualRelayService extends AbstractRelayService
 {
+    /**
+     * @var String 此处没有，虚拟一个即可。兼容AbstractRelayService
+     */
+    protected $host;
+
     /**
      * @var array 手动配置的隧道列表
      */
@@ -43,7 +49,7 @@ class ManualRelayService extends AbstractRelayService
         $this->getNodeList();
         $this->generateManualRelayedList();
         $this->buildManualFlowLinks();
-        
+
         return $this->links;
     }
 
@@ -57,7 +63,7 @@ class ManualRelayService extends AbstractRelayService
         foreach ($this->manualTunnels as $tunnel) {
             // 使用 source_name 匹配源节点
             $sourceNodes = $this->nodeList[$tunnel['source_name']] ?? null;
-            
+
             if (empty($sourceNodes)) {
                 continue;
             }
