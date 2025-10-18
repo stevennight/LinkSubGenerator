@@ -2,6 +2,8 @@
 
 namespace app\services\relay\impl;
 
+use app\services\filter\FilterProtocolService;
+
 /**
  * 手动配置的中转服务
  */
@@ -36,38 +38,47 @@ class ManualRelayService extends AbstractRelayService
      * 运行服务
      * @return array
      */
-    public function run(): array
+    public function run()
     {
-        $this->nodeList = $this->generateManualRelayedList();
-        $this->links = $this->buildManualFlowLinks();
+        $this->getNodeList();
+        $this->generateManualRelayedList();
+        $this->buildManualFlowLinks();
         
-        return [
-            'name' => $this->name,
-            'type' => $this->type,
-            'nodeList' => $this->nodeList,
-            'links' => $this->links,
-        ];
+        return $this->links;
     }
 
     /**
      * 生成手动中转列表
-     * @return array
      */
-    protected function generateManualRelayedList(): array
+    protected function generateManualRelayedList(): void
     {
-        $nodeList = [];
+        $outputProtocol = (new FilterProtocolService())->getOutputProtocol($this->data);
         
         foreach ($this->manualTunnels as $tunnel) {
-            $nodeList[] = [
-                'name' => $this->generateManualLabel($tunnel),
-                'type' => $this->type,
-                'host' => $this->getManualHost($tunnel),
-                'port' => $this->getManualPort($tunnel),
-                'protocol' => $this->getManualProtocol($tunnel),
-            ];
+            // 使用 source_name 匹配源节点
+            $sourceNodes = $this->nodeList[$tunnel['source_name']] ?? null;
+            
+            if (empty($sourceNodes)) {
+                continue;
+            }
+
+            foreach ($sourceNodes as $sourceNode) {
+                // 协议过滤
+                if (!in_array($sourceNode['protocol'], $outputProtocol)) {
+                    continue;
+                }
+
+                // 生成标签
+                $label = $this->generateManualLabel($tunnel, $sourceNode);
+                
+                // 生成链接
+                $link = $this->generateManualLink($tunnel, $sourceNode, $label);
+                
+                if (!empty($link)) {
+                    $this->links[$label] = $link;
+                }
+            }
         }
-        
-        return $nodeList;
     }
 
     /**
@@ -103,61 +114,78 @@ class ManualRelayService extends AbstractRelayService
     /**
      * 生成手动标签
      * @param array $tunnel
+     * @param array $sourceNode
      * @return string
      */
-    protected function generateManualLabel(array $tunnel): string
+    protected function generateManualLabel(array $tunnel, array $sourceNode): string
     {
         if (!empty($this->customLabelFormat)) {
             $label = $this->customLabelFormat;
             $label = str_replace('{source_name}', $tunnel['source_name'] ?? '', $label);
-            $label = str_replace('{host}', $tunnel['host'] ?? '', $label);
-            $label = str_replace('{port}', $tunnel['port'] ?? '', $label);
-            $label = str_replace('{protocol}', $tunnel['protocol'] ?? '', $label);
+            $label = str_replace('{host}', $this->getManualHost($tunnel), $label);
+            $label = str_replace('{port}', $this->getManualPort($tunnel), $label);
+            $label = str_replace('{protocol}', $this->getManualProtocol($tunnel), $label);
             $label = str_replace('{tunnel_type}', $tunnel['tunnel_type'] ?? '', $label);
             $label = str_replace('{remark}', $tunnel['remark'] ?? '', $label);
+            $label = str_replace('{relay_name}', $this->name ?? 'manual', $label);
             return $label;
         }
         
-        return $tunnel['source_name'] ?? ($tunnel['host'] . ':' . $tunnel['port']);
+        // 默认标签格式
+        return sprintf(
+            '%s-%s-%s',
+            $sourceNode['name'],
+            $this->name ?? 'manual',
+            $sourceNode['protocol']
+        );
     }
 
     /**
      * 生成手动链接
      * @param array $tunnel
+     * @param array $sourceNode
+     * @param string $label
      * @return string
      */
-    protected function generateManualLink(array $tunnel): string
+    protected function generateManualLink(array $tunnel, array $sourceNode, string $label): string
     {
-        $protocol = $tunnel['protocol'] ?? '';
-        $host = $tunnel['host'] ?? '';
-        $port = $tunnel['port'] ?? '';
+        $host = $this->getManualHost($tunnel);
+        $port = $this->getManualPort($tunnel);
         
-        if ($protocol && $host && $port) {
-            return $protocol . '://' . $host . ':' . $port;
+        if (empty($host) || empty($port)) {
+            return '';
         }
-        
-        return '';
+
+        // 获取源节点的链接模板
+        $link = $sourceNode['link'] ?? '';
+        if (empty($link)) {
+            return '';
+        }
+
+        // 替换链接中的占位符
+        $link = preg_replace('/\{host\}/', $host, $link);
+        $link = preg_replace('/\{port\}/', $port, $link);
+        $link = preg_replace('/\{label\}/', rawurlencode($label), $link);
+
+        return $link;
     }
 
     /**
      * 构建手动流量链接
-     * @return array
      */
-    protected function buildManualFlowLinks(): array
+    protected function buildManualFlowLinks(): void
     {
-        $links = [];
-        
-        if ($this->enableFlowInfo && !empty($this->manualUserInfo)) {
-            $serviceName = $this->manualUserInfo['service_name'] ?? $this->serviceName;
-            $expiredAt = $this->manualUserInfo['expired_at'] ?? '';
-            
-            if ($serviceName && $expiredAt) {
-                $label = $serviceName . ' (过期时间: ' . $expiredAt . ')';
-                $links[$label] = '#';
-            }
+        if (!$this->enableFlowInfo || empty($this->manualUserInfo)) {
+            return;
         }
+
+        $serviceName = $this->manualUserInfo['service_name'] ?? $this->serviceName;
+        $expiredAt = $this->manualUserInfo['expired_at'] ?? '';
         
-        return $links;
+        if ($serviceName && $expiredAt) {
+            $label = sprintf('[%s] 过期时间：%s', $serviceName, $expiredAt);
+            $this->links[$label] = 'ss://bm9uZTow@' . uniqid() . ':8888#' . rawurlencode($label);
+        }
     }
 
     /**
