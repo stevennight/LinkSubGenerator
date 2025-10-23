@@ -134,16 +134,21 @@ class ManualRelayService extends AbstractRelayService
             $label = str_replace('{tunnel_type}', $tunnel['tunnel_type'] ?? '', $label);
             $label = str_replace('{remark}', $tunnel['remark'] ?? '', $label);
             $label = str_replace('{relay_name}', $this->name ?? 'manual', $label);
+            $label = str_replace('{group}', $tunnel['group'] ?? '', $label);
             return $label;
         }
         
         // 默认标签格式
-        return sprintf(
+        $label = sprintf(
             '%s-%s-%s',
             $sourceNode['name'],
             $this->name ?? 'manual',
             $sourceNode['protocol']
         );
+        if (!empty($tunnel['group'])) {
+            $label .= '-' . $tunnel['group'];
+        }
+        return $label;
     }
 
     /**
